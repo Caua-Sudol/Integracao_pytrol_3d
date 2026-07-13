@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pytrol 3D - Fluxo CT-e</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #101418;
+        color: #f4f7fb;
+        font-family: Arial, sans-serif;
+      }
+
+      #app {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .scene-panel {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 2;
+        max-width: 360px;
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        background: rgba(14, 19, 24, 0.82);
+        backdrop-filter: blur(10px);
+      }
+
+      .scene-panel h1 {
+        margin: 0 0 6px;
+        font-size: 16px;
+      }
+
+      .scene-panel p {
+        margin: 0;
+        color: #b6c2d1;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .color-legend {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .color-legend strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+
+      .color-scale {
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgb(60, 120, 220), rgb(145, 130, 130), rgb(230, 140, 40));
+      }
+
+      .color-legend-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 6px;
+        color: #b6c2d1;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="scene-panel">
+      <h1>Fluxo de CT-e por filial</h1>
+      <p>Altura = quantidade de CT-e. <br>Cor = valor total. <br>Passe o mouse em uma barra para detalhar.</p>
+      <div class="color-legend">
+        <strong>Catalogo de cores</strong>
+        <div class="color-scale" aria-hidden="true"></div>
+        <div class="color-legend-row">
+          <span>Menor valor</span>
+          <span>Valor medio</span>
+          <span>Maior valor</span>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

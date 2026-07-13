@@ -1,0 +1,142 @@
+{
+  "projeto": {
+    "nome": "Gráfico 3D interativo de fluxo de CT-e por filial",
+    "objetivo": "Visualizar, em 3D, o fluxo e o valor de CT-e por filial ao longo de um intervalo de datas, com detalhamento sob demanda (peso, m3, peso cubado, volumes)",
+    "contexto": "Relatório de auditoria para gestores acompanharem fluxo de CT-e por filial",
+    "tecnologias": ["three.js", "InstancedMesh", "PostgreSQL (agregação já resolvida em SQL)"]
+  },
+
+  "dados": {
+    "origem": "Consulta SQL, filtrada por filial e intervalo de data (data inicial/final)",
+    "campos_entrada": [
+      { "campo": "cte_serial", "tipo": "identificador", "uso": "não usado em codificação visual" },
+      { "campo": "cte_numero", "tipo": "identificador", "uso": "exibido no tooltip como referência" },
+      { "campo": "data_exibicao", "tipo": "temporal", "uso": "bucket do eixo Z" },
+      { "campo": "filial_destino", "tipo": "categórico", "uso": "índice do eixo X" },
+      { "campo": "peso_cte", "tipo": "contínuo", "uso": "detalhe no tooltip" },
+      { "campo": "m3_cte", "tipo": "contínuo", "uso": "detalhe no tooltip" },
+      { "campo": "peso3_cte", "tipo": "contínuo", "uso": "detalhe no tooltip (peso cubado)" },
+      { "campo": "volumes", "tipo": "contínuo", "uso": "detalhe no tooltip" },
+      { "campo": "valor_total_cte", "tipo": "contínuo", "uso": "cor da barra (escala contínua)" }
+    ],
+    "pipeline": {
+      "1_indexacao_categorica": "Filiais únicas extraídas e ordenadas numericamente, viram índice inteiro (eixo X)",
+      "2_bucketing_temporal": "Granularidade adaptativa: número de fatias fixo (padrão 20), tamanho do bucket calculado a partir do range recebido, nunca menor que 1 dia",
+      "3_grade_completa": "Produto cartesiano filial × período; combinações sem dado ficam com métricas zeradas (zero-fill), sem furos visuais",
+      "4_escalas": {
+        "ordinal": "índice de filial/período → posição X/Z",
+        "continua_altura": "fluxo (contagem de CT-e) → altura da barra (Y)",
+        "continua_cor": "valor_total_cte agregado → gradiente de cor"
+      }
+    },
+    "formato_saida": {
+      "instances": [
+        {
+          "x": "number",
+          "z": "number",
+          "height": "number",
+          "color": { "r": "number", "g": "number", "b": "number" },
+          "meta": {
+            "filial": "number",
+            "fluxo": "number",
+            "valor_total": "number",
+            "peso": "number",
+            "m3": "number",
+            "peso3": "number",
+            "volumes": "number",
+            "rows": "array (linhas originais agregadas nessa célula)"
+          }
+        }
+      ],
+      "filiais": "array de filiais únicas, ordenadas (mesma ordem do índice X)",
+      "bucketLabels": "array de rótulos de data, um por período (mesma ordem do índice Z)"
+    }
+  },
+
+  "requisitos_funcionais": [
+    { "id": "RF01", "descricao": "Receber dados de CT-e filtrados por filial e intervalo de datas", "status": "concluído" },
+    { "id": "RF02", "descricao": "Indexar filiais de forma categórica para o eixo X", "status": "concluído" },
+    { "id": "RF03", "descricao": "Agrupar dados em buckets temporais com granularidade adaptativa para o eixo Z", "status": "concluído" },
+    { "id": "RF04", "descricao": "Preencher com zero as combinações filial×período sem dado (grade completa)", "status": "concluído" },
+    { "id": "RF05", "descricao": "Mapear fluxo de CT-e para altura da barra via escala contínua", "status": "concluído (na camada de dados) / pendente (aplicar no InstancedMesh)" },
+    { "id": "RF06", "descricao": "Mapear valor_total_cte para cor da barra via gradiente", "status": "concluído (na camada de dados) / pendente (aplicar no InstancedMesh)" },
+    { "id": "RF07", "descricao": "Renderizar as barras via InstancedMesh, uma instância por célula da grade", "status": "em andamento (posição em teste, escala/cor pendentes)" },
+    { "id": "RF08", "descricao": "Permitir rotação, zoom e pan da câmera via OrbitControls", "status": "concluído" },
+    { "id": "RF09", "descricao": "Identificar via raycasting qual barra está sob o cursor do mouse", "status": "pendente" },
+    { "id": "RF10", "descricao": "Exibir peso, m3, peso cubado, volumes e valor da célula sob o mouse em tooltip", "status": "pendente" },
+    { "id": "RF11", "descricao": "Destacar visualmente a barra sob o cursor (feedback de hover)", "status": "pendente" },
+    { "id": "RF12", "descricao": "Exibir labels dos eixos identificando cada filial e cada período", "status": "pendente" },
+    { "id": "RF13", "descricao": "Ajustar a câmera automaticamente ao tamanho real da grade de dados retornada", "status": "pendente" }
+  ],
+
+  "requisitos_nao_funcionais": [
+    { "id": "RNF01", "descricao": "Interface deve permanecer legível mesmo com intervalos de data grandes (bucketing adaptativo evita poluição visual)" },
+    { "id": "RNF02", "descricao": "Código organizado em camadas isoladas (dados, cena, interação, UI), sem acoplamento entre elas" },
+    { "id": "RNF03", "descricao": "Pipeline de dados deve ser testável isoladamente, sem dependência do three.js" }
+  ],
+
+  "arquitetura": {
+    "camadas": [
+      "data - indexação, bucketing, grade, escalas",
+      "scene - cena, câmera, renderer, controls, InstancedMesh",
+      "interaction - raycaster, resolução de instanceId, hover",
+      "ui - tooltip, labels de eixo"
+    ],
+    "estrutura_pastas": {
+      "index.html": "ponto de montagem",
+      "src/main.js": "orquestração, sem lógica própria",
+      "src/data/pipeline.js": "indexação, grade, escalas",
+      "src/scene/setup.js": "Scene, câmera, renderer, OrbitControls",
+      "src/scene/grid.js": "criação e atualização do InstancedMesh",
+      "src/interaction/raycast.js": "raycaster, hover, resolução do instanceId",
+      "src/ui/tooltip.js": "elemento DOM do tooltip e sua atualização"
+    }
+  },
+
+  "blocos_implementacao": [
+    {
+      "bloco": 1,
+      "nome": "Cena com múltiplos objetos",
+      "tasks": [
+        { "id": 1, "descricao": "Cena base (Scene, câmera, renderer)", "status": "concluído" },
+        { "id": 2, "descricao": "OrbitControls funcionando numa cena vazia", "status": "concluído" },
+        { "id": 3, "descricao": "Vários cubos hardcoded em posições diferentes", "status": "concluído" }
+      ]
+    },
+    {
+      "bloco": 2,
+      "nome": "Migrar pra InstancedMesh",
+      "tasks": [
+        { "id": 4, "descricao": "InstancedMesh com N instâncias em posições fixas", "status": "concluído" },
+        { "id": 5, "descricao": "Variar altura de cada instância via escala no eixo Y (dados de teste)", "status": "pendente" },
+        { "id": 6, "descricao": "Aplicar cor por instância (dados de teste)", "status": "pendente" }
+      ]
+    },
+    {
+      "bloco": 3,
+      "nome": "Plugar os dados reais",
+      "tasks": [
+        { "id": 7, "descricao": "Trocar valores de teste pelo array `instances` real", "status": "pendente" },
+        { "id": 8, "descricao": "Ajustar câmera/controls pra enquadrar a grade real automaticamente", "status": "pendente" }
+      ]
+    },
+    {
+      "bloco": 4,
+      "nome": "Interação",
+      "tasks": [
+        { "id": 9, "descricao": "Raycaster + mousemove testado num Mesh comum", "status": "pendente" },
+        { "id": 10, "descricao": "Raycaster contra InstancedMesh, extrair instanceId", "status": "pendente" },
+        { "id": 11, "descricao": "Ligar instanceId ao array de metadados (log no console)", "status": "pendente" },
+        { "id": 12, "descricao": "Feedback visual de hover (highlight da instância)", "status": "pendente" }
+      ]
+    },
+    {
+      "bloco": 5,
+      "nome": "Apresentação final",
+      "tasks": [
+        { "id": 13, "descricao": "Tooltip HTML com peso/m3/peso3/volumes/valor", "status": "pendente" },
+        { "id": 14, "descricao": "Labels dos eixos (filial, data) via CSS2DRenderer ou sprites", "status": "pendente" }
+      ]
+    }
+  ]
+}
