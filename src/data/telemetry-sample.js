@@ -1,0 +1,76 @@
+export const operationalTelemetrySample = {
+  reportType: 'telemetry-operational',
+  title: 'Telemetria operacional - Painel 257',
+  period: { from: '2026-07-18', to: '2026-07-24' },
+  summary: [
+    { key: 'created', label: 'Processos iniciados', value: 42 },
+    { key: 'completed', label: 'CT-es concluídos', value: 31 },
+    { key: 'returned', label: 'Retornos de etapa', value: 6 },
+    { key: 'deleted', label: 'Exclusões', value: 2 },
+    { key: 'uploads', label: 'Uploads', value: 116 },
+    { key: 'averageCycleHours', label: 'Ciclo médio (h)', value: 18.4 },
+  ],
+  daily: [
+    { date: '2026-07-18', created: 4, completed: 2, returned: 0, deleted: 0 },
+    { date: '2026-07-19', created: 7, completed: 5, returned: 1, deleted: 0 },
+    { date: '2026-07-20', created: 5, completed: 4, returned: 2, deleted: 1 },
+    { date: '2026-07-21', created: 8, completed: 5, returned: 0, deleted: 0 },
+    { date: '2026-07-22', created: 6, completed: 6, returned: 1, deleted: 0 },
+    { date: '2026-07-23', created: 9, completed: 7, returned: 2, deleted: 1 },
+    { date: '2026-07-24', created: 3, completed: 2, returned: 0, deleted: 0 },
+  ],
+  actionBreakdown: [
+    { key: 'UPLOAD_ARQUIVO', label: 'Upload arquivo', value: 116 },
+    { key: 'AVANCO_ETAPA', label: 'Avanço etapa', value: 93 },
+    { key: 'CRIACAO_PROCESSO', label: 'Criação processo', value: 42 },
+    { key: 'INCLUSAO_NFE', label: 'Inclusão NF-e', value: 38 },
+    { key: 'INCLUSAO_CTE_SUBSTITUTO', label: 'Inclusão CT-e substituto', value: 31 },
+    { key: 'RETORNO_ETAPA', label: 'Retorno etapa', value: 6 },
+  ],
+  stageBreakdown: [
+    { key: 1, label: 'Solicitação de anulação', value: 18 },
+    { key: 2, label: 'Emissão de NF-e', value: 11 },
+    { key: 3, label: 'CT-e substituto', value: 7 },
+    { key: 4, label: 'Concluídos', value: 84 },
+  ],
+};
+
+export const uxTelemetrySample = {
+  reportType: 'telemetry-ux',
+  title: 'Telemetria UI/UX - Painel 257',
+  period: { from: '2026-07-18', to: '2026-07-24' },
+  summary: [
+    { key: 'events', label: 'Interações', value: 486 },
+    { key: 'sessions', label: 'Sessões', value: 57 },
+    { key: 'users', label: 'Usuários', value: 12 },
+    { key: 'errors', label: 'Erros', value: 8 },
+    { key: 'averageDuration', label: 'Duração média (ms)', value: 740 },
+  ],
+  daily: [
+    { date: '2026-07-18', events: 42, sessions: 6 },
+    { date: '2026-07-19', events: 61, sessions: 8 },
+    { date: '2026-07-20', events: 54, sessions: 7 },
+    { date: '2026-07-21', events: 78, sessions: 9 },
+    { date: '2026-07-22', events: 73, sessions: 8 },
+    { date: '2026-07-23', events: 109, sessions: 12 },
+    { date: '2026-07-24', events: 69, sessions: 7 },
+  ],
+  eventBreakdown: [
+    { key: 'ACTION_MENU_OPENED', label: 'Menu de ações aberto', value: 142 },
+    { key: 'WORKFLOW_ACTION_CLICKED', label: 'Ação de fluxo', value: 96 },
+    { key: 'UPLOAD_MANAGER_OPENED', label: 'Gestor de anexos', value: 88 },
+    { key: 'UNIFIED_GROUP_EXPANDED', label: 'Grupo unificado expandido', value: 63 },
+    { key: 'PROCESS_FORM_OPENED', label: 'Formulário aberto', value: 52 },
+    { key: 'FILTER_APPLIED', label: 'Filtro aplicado', value: 45 },
+  ],
+  resultBreakdown: [
+    { key: 'SUCESSO', label: 'Sucesso', value: 441 },
+    { key: 'VALIDACAO', label: 'Validação', value: 37 },
+    { key: 'ERRO', label: 'Erro', value: 8 },
+  ],
+  codeBreakdown: [
+    { key: 'FATURA_NAO_ENCONTRADA', label: 'Fatura não encontrada', value: 17 },
+    { key: 'ANEXO_OBRIGATORIO', label: 'Anexo obrigatório', value: 12 },
+    { key: 'PRAZO_EXPIRADO', label: 'Prazo expirado', value: 8 },
+  ],
+};

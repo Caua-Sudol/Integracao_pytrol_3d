@@ -1,24 +1,40 @@
 import * as THREE from 'three';
 import { sampleRows } from './src/data/sample.js';
+import {
+  operationalTelemetrySample,
+  uxTelemetrySample,
+} from './src/data/telemetry-sample.js';
 import { buildGraphData } from './src/data/pipeline.js';
 import { setupScene } from './src/scene/setup.js';
 import { createBarGrid } from './src/scene/grid.js';
 import { createAxisLabels } from './src/scene/labels.js';
 import { setupHover } from './src/interaction/raycast.js';
+import { renderDashboard } from './src/ui/dashboard.js';
 import { createTooltip } from './src/ui/tooltip.js';
 import { PUBLIC_APP_URL } from './src/config/env.js';
 
-const container = document.getElementById('app');
+const container = document.getElementById('scene-container');
+const sceneView = document.getElementById('scene-view');
+const dashboardView = document.getElementById('dashboard-view');
+const dashboardRoot = document.getElementById('dashboard-root');
+const modeButtons = [...document.querySelectorAll('[data-report-mode]')];
 const { scene, camera, renderer, controls, dispose: disposeScene } = setupScene(container);
 const tooltip = createTooltip();
+const telemetryPayloads = {
+  operational: operationalTelemetrySample,
+  ux: uxTelemetrySample,
+};
 let activeGraph = null;
+let activeMode = 'cte';
 let removePytrolDataListener = null;
 
 console.info(`Pimp Three listening as ${PUBLIC_APP_URL}`);
 renderGraph(sampleRows);
 removePytrolDataListener = setupPytrolDataListener();
+setupModeNavigation();
 
 renderer.setAnimationLoop(() => {
+  if (activeMode !== 'cte') return;
   controls.update();
   renderer.render(scene, camera);
 });
@@ -55,16 +71,68 @@ function setupPytrolDataListener() {
   const onMessage = (event) => {
     if (event.data?.type !== 'PYTROL_THREE_DATA') return;
 
-    const rows = event.data.payload?.rows;
+    const payload = event.data.payload || {};
+    if (payload.reportType === 'telemetry-operational') {
+      telemetryPayloads.operational = payload.data || payload;
+      showMode('operational');
+      return;
+    }
+
+    if (payload.reportType === 'telemetry-ux') {
+      telemetryPayloads.ux = payload.data || payload;
+      showMode('ux');
+      return;
+    }
+
+    const rows = payload.rows;
     if (!Array.isArray(rows)) return;
 
     renderGraph(rows.length ? rows : sampleRows);
+    showMode('cte');
   };
 
   window.addEventListener('message', onMessage);
   window.opener?.postMessage({ type: 'THREE_READY' }, '*');
 
   return () => window.removeEventListener('message', onMessage);
+}
+
+function setupModeNavigation() {
+  modeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      showMode(button.dataset.reportMode || 'cte');
+    });
+  });
+}
+
+function showMode(mode) {
+  activeMode = ['cte', 'operational', 'ux'].includes(mode) ? mode : 'cte';
+  const showScene = activeMode === 'cte';
+
+  sceneView.hidden = !showScene;
+  dashboardView.hidden = showScene;
+  controls.enabled = showScene;
+  document.body.classList.toggle('dashboard-active', !showScene);
+
+  modeButtons.forEach((button) => {
+    button.setAttribute(
+      'aria-selected',
+      String(button.dataset.reportMode === activeMode),
+    );
+  });
+
+  if (showScene) {
+    requestAnimationFrame(() => {
+      renderer.setSize(container.clientWidth, container.clientHeight, false);
+      camera.aspect = container.clientWidth / Math.max(container.clientHeight, 1);
+      camera.updateProjectionMatrix();
+    });
+    return;
+  }
+
+  tooltip.hide();
+  renderDashboard(dashboardRoot, telemetryPayloads[activeMode]);
+  window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 function clearGraph() {

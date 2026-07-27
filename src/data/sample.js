@@ -1,35 +1,41 @@
 export const sampleRows = [
-    {
-      cte_serial: 99999901,
-      cte_numero: '99/9999001',
-      data_exibicao: '2026-06-01 23:20:57',
-      filial_destino: 7,
-      peso_cte: 3.736,
-      m3_cte: 0.0,
-      peso3_cte: 3.736,
-      volumes: 1,
-      valor_total_cte: 87.0,
-    },
-    {
-      cte_serial: 99999902,
-      cte_numero: '99/9999002',
-      data_exibicao: '2026-06-02 08:15:40',
-      filial_destino: 7,
-      peso_cte: 420.2,
-      m3_cte: 1.8,
-      peso3_cte: 540.0,
-      volumes: 16,
-      valor_total_cte: 1320.9,
-    },
-    {
-      cte_serial: 99999903,
-      cte_numero: '99/9999003',
-      data_exibicao: '2026-06-03 14:02:12',
-      filial_destino: 10,
-      peso_cte: 87.5,
-      m3_cte: 0.42,
-      peso3_cte: 126.0,
-      volumes: 5,
-      valor_total_cte: 410.0,
-    },
-  ];
+  createSampleRow(99999001, '2026-06-01 08:15:00', 7, 180.4, 0.8, 240.0, 8, 420.9),
+  createSampleRow(99999002, '2026-06-01 09:40:00', 7, 86.2, 0.3, 90.0, 3, 210.0),
+  createSampleRow(99999003, '2026-06-01 11:25:00', 10, 520.0, 1.9, 570.0, 14, 1380.4),
+  createSampleRow(99999004, '2026-06-01 15:05:00', 12, 1200.0, 4.5, 1350.0, 36, 4260.0),
+
+  createSampleRow(99999005, '2026-06-02 07:50:00', 7, 310.8, 1.1, 330.0, 10, 790.5),
+  createSampleRow(99999006, '2026-06-02 10:10:00', 10, 92.0, 0.4, 120.0, 4, 310.0),
+  createSampleRow(99999007, '2026-06-02 10:45:00', 10, 144.5, 0.6, 180.0, 5, 480.0),
+  createSampleRow(99999008, '2026-06-02 13:30:00', 15, 2200.0, 8.2, 2460.0, 70, 7280.3),
+
+  createSampleRow(99999009, '2026-06-03 08:35:00', 7, 56.4, 0.2, 60.0, 2, 160.0),
+  createSampleRow(99999010, '2026-06-03 09:25:00', 12, 780.0, 2.9, 870.0, 22, 2440.0),
+  createSampleRow(99999011, '2026-06-03 14:15:00', 12, 640.0, 2.4, 720.0, 18, 1980.0),
+  createSampleRow(99999012, '2026-06-03 16:50:00', 15, 1320.0, 5.1, 1530.0, 42, 5120.7),
+
+  createSampleRow(99999013, '2026-06-04 07:45:00', 10, 410.0, 1.4, 420.0, 12, 1040.0),
+  createSampleRow(99999014, '2026-06-04 12:05:00', 10, 260.0, 0.9, 270.0, 8, 690.0),
+  createSampleRow(99999015, '2026-06-04 13:20:00', 12, 980.0, 3.7, 1110.0, 29, 3020.0),
+  createSampleRow(99999016, '2026-06-04 17:55:00', 18, 1880.0, 7.3, 2190.0, 61, 6390.2),
+
+  createSampleRow(99999017, '2026-06-05 08:05:00', 7, 420.0, 1.6, 480.0, 16, 1180.0),
+  createSampleRow(99999018, '2026-06-05 09:35:00', 10, 720.0, 2.8, 840.0, 24, 2240.0),
+  createSampleRow(99999019, '2026-06-05 11:10:00', 15, 1600.0, 6.4, 1920.0, 54, 5660.0),
+  createSampleRow(99999020, '2026-06-05 15:45:00', 18, 240.0, 0.7, 210.0, 6, 520.0),
+  createSampleRow(99999021, '2026-06-05 16:30:00', 18, 310.0, 0.9, 270.0, 9, 730.0),
+];
+
+function createSampleRow(serial, data, filial, peso, m3, peso3, volumes, valor) {
+  return {
+    cte_serial: serial,
+    cte_numero: `99/${serial}`,
+    data_exibicao: data,
+    filial_destino: filial,
+    peso_cte: peso,
+    m3_cte: m3,
+    peso3_cte: peso3,
+    volumes,
+    valor_total_cte: valor,
+  };
+}
