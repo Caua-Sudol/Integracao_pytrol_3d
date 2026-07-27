@@ -17,6 +17,7 @@ const container = document.getElementById('scene-container');
 const sceneView = document.getElementById('scene-view');
 const dashboardView = document.getElementById('dashboard-view');
 const dashboardRoot = document.getElementById('dashboard-root');
+const modeTabs = document.querySelector('.mode-tabs');
 const modeButtons = [...document.querySelectorAll('[data-report-mode]')];
 const { scene, camera, renderer, controls, dispose: disposeScene } = setupScene(container);
 const tooltip = createTooltip();
@@ -26,6 +27,7 @@ const telemetryPayloads = {
 };
 let activeGraph = null;
 let activeMode = 'cte';
+let availableModes = new Set(['cte', 'operational', 'ux']);
 let removePytrolDataListener = null;
 
 console.info(`Pimp Three listening as ${PUBLIC_APP_URL}`);
@@ -72,14 +74,35 @@ function setupPytrolDataListener() {
     if (event.data?.type !== 'PYTROL_THREE_DATA') return;
 
     const payload = event.data.payload || {};
+    if (payload.reportType === 'report-suite') {
+      const reports = payload.reports || {};
+      const rows = reports.cte?.rows;
+
+      if (Array.isArray(rows)) {
+        renderGraph(rows.length ? rows : sampleRows);
+      }
+      if (reports.operational?.reportType) {
+        telemetryPayloads.operational = reports.operational;
+      }
+      if (reports.ux?.reportType) {
+        telemetryPayloads.ux = reports.ux;
+      }
+
+      setAvailableModes(['cte', 'operational', 'ux']);
+      showMode(payload.defaultReport || 'cte');
+      return;
+    }
+
     if (payload.reportType === 'telemetry-operational') {
       telemetryPayloads.operational = payload.data || payload;
+      setAvailableModes(['operational']);
       showMode('operational');
       return;
     }
 
     if (payload.reportType === 'telemetry-ux') {
       telemetryPayloads.ux = payload.data || payload;
+      setAvailableModes(['ux']);
       showMode('ux');
       return;
     }
@@ -88,6 +111,7 @@ function setupPytrolDataListener() {
     if (!Array.isArray(rows)) return;
 
     renderGraph(rows.length ? rows : sampleRows);
+    setAvailableModes(['cte']);
     showMode('cte');
   };
 
@@ -106,7 +130,9 @@ function setupModeNavigation() {
 }
 
 function showMode(mode) {
-  activeMode = ['cte', 'operational', 'ux'].includes(mode) ? mode : 'cte';
+  activeMode = availableModes.has(mode)
+    ? mode
+    : [...availableModes][0] || 'cte';
   const showScene = activeMode === 'cte';
 
   sceneView.hidden = !showScene;
@@ -133,6 +159,15 @@ function showMode(mode) {
   tooltip.hide();
   renderDashboard(dashboardRoot, telemetryPayloads[activeMode]);
   window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function setAvailableModes(modes) {
+  availableModes = new Set(modes);
+  modeTabs.hidden = availableModes.size <= 1;
+
+  modeButtons.forEach((button) => {
+    button.hidden = !availableModes.has(button.dataset.reportMode);
+  });
 }
 
 function clearGraph() {
